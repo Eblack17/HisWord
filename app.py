@@ -4,6 +4,7 @@ from ai_agents import get_biblical_guidance
 import os
 import logging
 import sys
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(
@@ -18,6 +19,14 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+@app.route('/health')
+def health():
+    logger.info("Health check endpoint accessed")
+    return jsonify({
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat()
+    })
+
 @app.route('/')
 def home():
     logger.info("Home endpoint accessed")
@@ -26,6 +35,7 @@ def home():
         "message": "His Word API is running",
         "endpoints": {
             "/": "API documentation",
+            "/health": "Health check endpoint",
             "/guidance": "POST - Get biblical guidance for your situation"
         },
         "example": {
