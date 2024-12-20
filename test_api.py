@@ -1,42 +1,54 @@
 import requests
 import json
+import logging
 
-def test_api(url, question):
-    """Test the His Word API with a question."""
-    try:
-        # Make the API request
-        response = requests.post(
-            f"{url}/guidance",
-            json={"question": question},
-            headers={"Content-Type": "application/json"}
-        )
-        
-        # Print the response status
-        print(f"Status Code: {response.status_code}")
-        
-        # Pretty print the response
-        print("\nResponse:")
-        print(json.dumps(response.json(), indent=2))
-        
-    except Exception as e:
-        print(f"Error: {str(e)}")
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-if __name__ == "__main__":
-    # Replace with your Railway URL
-    API_URL = "https://hisword-production.up.railway.app"
+def test_api(base_url: str = "http://localhost:8000"):
+    """
+    Test the Bible Verse API endpoints
+    """
+    logger.info(f"Testing API at {base_url}")
     
-    # Test questions
-    questions = [
-        "How can I find peace in difficult times?",
-        "What does the Bible say about love?",
-        "How to deal with anxiety?"
+    # Test 1: Check if API is running
+    try:
+        response = requests.get(f"{base_url}/")
+        assert response.status_code == 200
+        logger.info("✓ API is running")
+    except Exception as e:
+        logger.error(f"✗ API check failed: {str(e)}")
+        return
+    
+    # Test 2: Get guidance for a test question
+    test_questions = [
+        "I'm feeling anxious about my future",
+        "How can I forgive someone who hurt me?",
+        "I'm struggling with making an important decision"
     ]
     
-    print("Testing His Word API...")
-    print("-" * 50)
+    for question in test_questions:
+        try:
+            response = requests.post(
+                f"{base_url}/guidance",
+                json={"question": question},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            assert response.status_code == 200
+            result = response.json()
+            assert result["success"] == True
+            assert "guidance" in result
+            
+            logger.info(f"✓ Successfully got guidance for: {question}")
+            logger.info(f"Guidance received: {result['guidance']}\n")
+            
+        except Exception as e:
+            logger.error(f"✗ Guidance request failed for '{question}': {str(e)}")
     
-    for question in questions:
-        print(f"\nTesting question: {question}")
-        print("-" * 50)
-        test_api(API_URL, question)
-        print("-" * 50)
+    logger.info("API testing completed")
+
+if __name__ == "__main__":
+    # You can change this to your deployed URL when testing production
+    test_api()

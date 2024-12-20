@@ -1,85 +1,71 @@
-# His Word API
+# Bible Verse Finder
 
-A RESTful API that provides biblical guidance and wisdom for any life situation. Using AI-powered analysis, it finds relevant Bible verses and practical applications for your specific circumstances.
+A Python application that provides relevant biblical guidance based on your situation or question. This app uses AI to analyze your input and find the most appropriate Bible verse along with practical applications.
 
 ## Features
 
-- Scenario Analysis: Understands the context and emotional aspects of your situation
-- Biblical Guidance: Provides relevant Bible verses with explanations
-- Practical Application: Offers actionable ways to apply biblical wisdom
-
-## API Endpoints
-
-### GET /
-Returns API status and documentation
-
-### POST /guidance
-Get biblical guidance for your situation
-
-**Request Body:**
-```json
-{
-    "question": "Your situation or question here"
-}
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "data": {
-        "scenario": "Your input question",
-        "analysis": "Analysis of your situation",
-        "guidance": "Bible verse and practical application"
-    }
-}
-```
+- Intelligent analysis of user situations and questions
+- Provides relevant Bible verses with context
+- Explains why the verse is relevant
+- Offers practical application steps
+- Modern, user-friendly GUI
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/HisWord.git
-cd HisWord
+git clone https://github.com/yourusername/bible-verse-finder.git
+cd bible-verse-finder
 ```
 
-2. Create a virtual environment:
+2. Create a virtual environment and activate it:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# On Windows:
+venv\Scripts\activate
+# On Unix or MacOS:
+source venv/bin/activate
 ```
 
-3. Install dependencies:
+3. Install the required packages:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Create a .env file with your OpenAI API key:
+4. Create a `.env` file in the project root and add your OpenAI API key:
 ```
 OPENAI_API_KEY=your_api_key_here
 ```
 
-5. Run the application:
-```bash
-python app.py
-```
-
 ## Usage
 
-Send a POST request to the /guidance endpoint:
-
+1. Run the application:
 ```bash
-curl -X POST http://localhost:8000/guidance \
-  -H "Content-Type: application/json" \
-  -d '{"question":"How can I find peace in difficult times?"}'
+# On Windows:
+run_app.bat
+# On Unix or MacOS:
+python bible_app_gui.py
 ```
+
+2. Enter your situation, question, or topic in the text box
+3. Click "Get Guidance"
+4. The app will provide:
+   - A relevant Bible verse
+   - An explanation of its relevance
+   - Practical application steps
 
 ## Dependencies
 
-- Flask: Web framework
-- OpenAI: AI model for analysis
-- Pydantic: Data validation
-- Python-dotenv: Environment variable management
+- Python 3.8+
+- customtkinter
+- openai
+- python-dotenv
+- pydantic
+- pydantic-ai
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 

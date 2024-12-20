@@ -1,9 +1,13 @@
 from typing import List, Optional, Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from datetime import datetime
+from enum import Enum
+from pydantic_ai import Agent
+import openai
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import logging
-from openai import OpenAI
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,9 +23,10 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
-class ScenarioAnalyzer:
-    def __init__(self):
-        self.system_prompt = """You are an expert at understanding human situations and emotions. For any given scenario, word, or question, provide:
+class ScenarioAnalysisAgent(Agent):
+    name: str = "Scenario Analysis Agent"
+    model: str = "gpt-3.5-turbo"
+    system_prompt: str = """You are an expert at understanding human situations and emotions. For any given scenario, word, or question, provide:
 1. Core Situation: Clearly identify what the person is dealing with or asking about
 2. Emotional Context: Analyze the underlying emotions, feelings, or state of mind
 3. Spiritual Need: Identify the spiritual guidance or comfort they might be seeking
@@ -48,35 +53,29 @@ Keep your response concise and focused on these key aspects to help provide rele
             logger.error(f"Error in analyze_scenario: {str(e)}")
             raise
 
-class BibleVerseAdvisor:
-    def __init__(self):
-        self.system_prompt = """You are a Bible expert who finds the perfect verse for any situation. For the given input, provide:
+class BibleVerseAgent(Agent):
+    name: str = "Bible Verse Agent"
+    model: str = "gpt-3.5-turbo"
+    system_prompt: str = """You are a Bible expert who finds the perfect verse for any situation. For the given input, provide:
 1. The Single Most Relevant Bible Verse: Choose one verse that best addresses the situation (include exact reference)
 2. Why This Verse: In no more than two sentences, explain why this verse perfectly matches their situation
 3. Practical Application: In exactly three sentences, provide specific and actionable ways to apply this verse's wisdom to their life
 
 Keep your response structured with these three sections, being concise yet impactful."""
-    
+
     def provide_guidance(self, scenario: str, analysis: str) -> Dict[str, str]:
         try:
             logger.info("Providing biblical guidance")
             messages = [
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": f"""Based on this scenario: {scenario}
-                
-And this analysis: {analysis}
-
-Please provide:
-1. The Single Most Relevant Bible Verse
-2. Why This Verse
-3. Practical Application"""}
+                {"role": "user", "content": f"Scenario: {scenario}\n\nAnalysis: {analysis}"}
             ]
             completion = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=messages
             )
             guidance = completion.choices[0].message.content
-            logger.info("Guidance provided successfully")
+            logger.info("Biblical guidance generated successfully")
             return {
                 "guidance": guidance
             }
@@ -88,8 +87,8 @@ def get_biblical_guidance(scenario: str) -> Dict[str, str]:
     try:
         logger.info("Starting biblical guidance process")
         # Initialize agents
-        analyzer = ScenarioAnalyzer()
-        bible_advisor = BibleVerseAdvisor()
+        analyzer = ScenarioAnalysisAgent()
+        bible_advisor = BibleVerseAgent()
         
         # First, analyze the scenario
         analysis_result = analyzer.analyze_scenario(scenario)
@@ -106,22 +105,3 @@ def get_biblical_guidance(scenario: str) -> Dict[str, str]:
     except Exception as e:
         logger.error(f"Error in get_biblical_guidance: {str(e)}")
         raise
-
-def main():
-    # Example usage
-    scenario = "I'm feeling anxious about my future and career decisions. How can I trust God's plan?"
-    
-    try:
-        result = get_biblical_guidance(scenario)
-        
-        print("\n=== Your Scenario ===")
-        print(scenario)
-        print("\n=== Scenario Analysis ===")
-        print(result["analysis"])
-        print("\n=== Biblical Guidance ===")
-        print(result["guidance"])
-    except Exception as e:
-        print(f"Error during example usage: {str(e)}")
-
-if __name__ == "__main__":
-    main()
