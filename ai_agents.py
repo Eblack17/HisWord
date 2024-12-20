@@ -1,133 +1,62 @@
-from typing import List, Optional, Dict
-from pydantic import BaseModel, Field
-from datetime import datetime
-from enum import Enum
-from pydantic_ai import Agent
-import openai
-from openai import OpenAI
 import os
+from openai import OpenAI
+from pydantic import BaseModel
+from typing import Dict, Any
 from dotenv import load_dotenv
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
 
-# Initialize OpenAI client
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise ValueError("OPENAI_API_KEY not found in environment variables!")
+class BibleVerseAgent:
+    def __init__(self):
+        self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-client = OpenAI(api_key=api_key)
-
-class ScenarioAnalysisAgent(Agent):
-    name: str = "Scenario Analysis Agent"
-    model: str = "gpt-3.5-turbo"
-    system_prompt: str = """You are an expert at understanding human situations and emotions. For any given scenario, word, or question, provide:
-1. Core Situation: Clearly identify what the person is dealing with or asking about
-2. Emotional Context: Analyze the underlying emotions, feelings, or state of mind
-3. Spiritual Need: Identify the spiritual guidance or comfort they might be seeking
-
-Keep your response concise and focused on these key aspects to help provide relevant biblical guidance."""
-    
-    def analyze_scenario(self, scenario: str) -> Dict[str, str]:
+    def provide_guidance(self, question: str) -> Dict[str, Any]:
+        """
+        Provide biblical guidance based on the user's question.
+        
+        Args:
+            question (str): The user's question or situation
+            
+        Returns:
+            Dict[str, Any]: Dictionary containing the guidance
+        """
         try:
-            logger.info(f"Analyzing scenario: {scenario}")
-            messages = [
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": f"Analyze this situation: {scenario}"}
-            ]
-            completion = client.chat.completions.create(
+            # Create the prompt for the API
+            prompt = f"""Given this situation or question: "{question}"
+            Please provide relevant biblical guidance. Focus on providing:
+            1. A specific, relevant Bible verse
+            2. A brief explanation of how this verse relates to the situation
+            3. Practical advice on how to apply this wisdom
+
+            Format the response as a concise, direct message."""
+
+            # Get completion from OpenAI
+            completion = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=messages
+                messages=[
+                    {"role": "system", "content": "You are a knowledgeable biblical advisor."},
+                    {"role": "user", "content": prompt}
+                ]
             )
-            analysis = completion.choices[0].message.content
-            logger.info(f"Analysis completed successfully")
-            return {
-                "analysis": analysis
-            }
-        except Exception as e:
-            logger.error(f"Error in analyze_scenario: {str(e)}")
-            raise
-
-class BibleVerseAgent(Agent):
-    name: str = "Bible Verse Agent"
-    model: str = "gpt-3.5-turbo"
-    system_prompt: str = """You are a Bible expert who finds the perfect verse for any situation. For the given input, provide:
-1. The Single Most Relevant Bible Verse: Choose one verse that best addresses the situation (include exact reference)
-2. Why This Verse: In no more than two sentences, explain why this verse perfectly matches their situation
-3. Practical Application: In exactly three sentences, provide specific and actionable ways to apply this verse's wisdom to their life
-
-Keep your response structured with these three sections, being concise yet impactful."""
-    
-    def provide_guidance(self, scenario: str, analysis: str) -> Dict[str, str]:
-        try:
-            logger.info("Providing biblical guidance")
-            messages = [
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": f"""Based on this scenario: {scenario}
-                
-And this analysis: {analysis}
-
-Please provide:
-1. The Single Most Relevant Bible Verse
-2. Why This Verse
-3. Practical Application"""}
-            ]
-            completion = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=messages
-            )
+            
+            # Extract the response
             guidance = completion.choices[0].message.content
-            logger.info("Guidance provided successfully")
-            return {
-                "guidance": guidance
-            }
+
+            return {"guidance": guidance}
+            
         except Exception as e:
-            logger.error(f"Error in provide_guidance: {str(e)}")
-            raise
+            raise Exception(f"Error getting biblical guidance: {str(e)}")
 
-def get_biblical_guidance(scenario: str) -> Dict[str, str]:
-    try:
-        logger.info("Starting biblical guidance process")
-        # Initialize agents
-        analyzer = ScenarioAnalysisAgent()
-        bible_advisor = BibleVerseAgent()
-        
-        # First, analyze the scenario
-        analysis_result = analyzer.analyze_scenario(scenario)
-        
-        # Then, get biblical guidance based on the analysis
-        guidance_result = bible_advisor.provide_guidance(scenario, analysis_result["analysis"])
-        
-        logger.info("Biblical guidance process completed successfully")
-        return {
-            "scenario": scenario,
-            "analysis": analysis_result["analysis"],
-            "guidance": guidance_result["guidance"]
-        }
-    except Exception as e:
-        logger.error(f"Error in get_biblical_guidance: {str(e)}")
-        raise
-
-def main():
-    # Example usage
-    scenario = "I'm feeling anxious about my future and career decisions. How can I trust God's plan?"
+def get_biblical_guidance(question: str) -> Dict[str, Any]:
+    """
+    Helper function to get biblical guidance.
     
-    try:
-        result = get_biblical_guidance(scenario)
+    Args:
+        question (str): The user's question
         
-        print("\n=== Your Scenario ===")
-        print(scenario)
-        print("\n=== Scenario Analysis ===")
-        print(result["analysis"])
-        print("\n=== Biblical Guidance ===")
-        print(result["guidance"])
-    except Exception as e:
-        print(f"Error during example usage: {str(e)}")
-
-if __name__ == "__main__":
-    main()
+    Returns:
+        Dict[str, Any]: Dictionary containing the guidance
+    """
+    agent = BibleVerseAgent()
+    return agent.provide_guidance(question)
