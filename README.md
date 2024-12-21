@@ -1,21 +1,21 @@
-# Bible Verse Finder
+# HisWord - Bible Verse API
 
-A Python application that provides relevant biblical guidance based on your situation or question. This app uses AI to analyze your input and find the most appropriate Bible verse along with practical applications.
+An AI-powered API that provides relevant biblical guidance based on user situations or questions. This API uses advanced language models to analyze input and find the most appropriate Bible verse along with practical applications.
 
 ## Features
 
 - Intelligent analysis of user situations and questions
-- Provides relevant Bible verses with context
-- Explains why the verse is relevant
+- Returns relevant Bible verses with context
+- Provides explanations of verse relevance
 - Offers practical application steps
-- Modern, user-friendly GUI
+- Simple and easy-to-use API
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/bible-verse-finder.git
-cd bible-verse-finder
+git clone https://github.com/Eblack17/HisWord.git
+cd HisWord
 ```
 
 2. Create a virtual environment and activate it:
@@ -39,29 +39,44 @@ OPENAI_API_KEY=your_api_key_here
 
 ## Usage
 
-1. Run the application:
-```bash
-# On Windows:
-run_app.bat
-# On Unix or MacOS:
-python bible_app_gui.py
+The API provides a simple interface to get biblical guidance. Here's a basic example:
+
+```python
+from ai_agents import get_biblical_guidance
+
+# Get guidance for a situation
+scenario = "I'm feeling anxious about my future"
+result = get_biblical_guidance(scenario)
+
+# The result contains:
+# - scenario: The original input
+# - analysis: AI's analysis of the situation (optional)
+# - guidance: Bible verse, explanation, and application
+
+# Print the guidance
+print(result["guidance"])
 ```
 
-2. Enter your situation, question, or topic in the text box
-3. Click "Get Guidance"
-4. The app will provide:
-   - A relevant Bible verse
-   - An explanation of its relevance
-   - Practical application steps
+See `example.py` for more usage examples.
+
+### Response Format
+
+The API returns a dictionary with the following structure:
+
+```python
+{
+    "scenario": "The original input text",
+    "analysis": "AI's analysis of the situation and context",
+    "guidance": "1. Bible verse with reference\n2. Explanation of relevance\n3. Practical application steps"
+}
+```
 
 ## Dependencies
 
 - Python 3.8+
-- customtkinter
 - openai
 - python-dotenv
 - pydantic
-- pydantic-ai
 
 ## Contributing
 
